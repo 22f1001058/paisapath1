@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>PaisaPath: customer story, problems, solutions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  /* PaisaPath "The Ledger" — same tokens as the product, so the deck and the
+     thing it describes are visibly the same object. */
+  :root{
+    --paper:#F4F0E8; --paper-2:#EDE7DB; --card:#FFFCF6;
+    --ink:#1B1815; --ink-2:#4E483E; --ink-3:#857D6E;
+    --rule:#DFD7C6; --rule-2:#EAE3D5;
+    --forest:#14493C; --forest-2:#1F6B57; --forest-3:#E3EBE5;
+    --marigold:#C8891F; --marigold-2:#F5E7C9;
+    --terracotta:#AB4326; --terracotta-2:#F6E1D9;
+    --sans:'Inter',system-ui,sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#12110F;font-family:var(--sans);color:var(--ink);
+    display:grid;place-items:center;overflow:hidden;
+  }
+  /* Fixed 1280x720 stage, scaled to fit whatever it is projected on. */
+  #stage{width:1280px;height:720px;position:relative;transform-origin:center center}
+  .slide{
+    position:absolute;inset:0;background:var(--paper);padding:58px 68px;
+    display:none;flex-direction:column;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .slide.on{display:flex}
+
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+  h1{font-family:var(--serif);font-size:62px;font-weight:600;letter-spacing:-.03em;line-height:1.02}
+  h2{font-family:var(--serif);font-size:38px;font-weight:500;letter-spacing:-.025em;line-height:1.1;margin-top:8px}
+  .sub{font-size:17px;color:var(--ink-2);margin-top:12px;max-width:78ch;line-height:1.5}
+  .foot{position:absolute;left:68px;right:68px;bottom:26px;display:flex;justify-content:space-between;
+        font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+        border-top:1px solid var(--rule);padding-top:10px}
+  .num{font-family:var(--serif);font-variant-numeric:tabular-nums;font-weight:500;letter-spacing:-.03em}
+
+  .grid{display:grid;gap:18px;margin-top:26px}
+  .g2{grid-template-columns:1fr 1fr} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+  .card{background:var(--card);border:1px solid var(--rule);border-radius:4px;padding:18px 20px}
+  .card h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+  .card p{font-size:13.5px;color:var(--ink-2);line-height:1.5;margin-top:6px}
+
+  .stat{text-align:left}
+  .stat .n{font-family:var(--serif);font-size:52px;font-weight:600;letter-spacing:-.035em;line-height:1;color:var(--forest)}
+  .stat .n.warn{color:var(--terracotta)}
+  .stat .l{font-size:13px;color:var(--ink-2);margin-top:8px;line-height:1.45}
+
+  .person{border-left:2px solid var(--forest);padding-left:16px}
+  .person .lvl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+  .person .who{font-family:var(--serif);font-size:21px;font-weight:600;margin-top:4px;letter-spacing:-.02em}
+  .person .q{font-size:13.5px;font-style:italic;color:var(--ink-2);margin-top:8px;line-height:1.5}
+
+  .arc{display:block;width:100%;height:172px;margin-top:16px}
+
+  .rc{display:flex;gap:13px;align-items:flex-start}
+  .rc .tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:#F4EEDE;background:var(--forest);
+           padding:3px 7px;border-radius:3px;flex:none;margin-top:2px}
+  .rc.t2 .tag{background:var(--marigold);color:#2B1D06}
+  .rc.t3 .tag{background:var(--terracotta);color:#FBEDE7}
+  .rc.t4 .tag{background:var(--ink);color:var(--paper)}
+
+  .feat{display:grid;grid-template-columns:1fr auto 1.15fr;gap:14px;align-items:center;
+        padding:11px 0;border-bottom:1px solid var(--rule-2)}
+  .feat:last-child{border-bottom:0}
+  .feat .cause{font-size:12.5px;color:var(--ink-3)}
+  .feat .arrow{color:var(--rule);font-size:15px}
+  .feat .what{font-size:14px;font-weight:600;letter-spacing:-.01em}
+  .feat .what span{display:block;font-weight:400;font-size:12.5px;color:var(--ink-2);margin-top:2px;line-height:1.45}
+  .pill{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+        border:1px solid var(--rule);border-radius:20px;padding:2px 7px;color:var(--ink-3);white-space:nowrap}
+  .pill.live{background:var(--forest-3);border-color:transparent;color:var(--forest)}
+
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:24px}
+  .split .col h3{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;margin-bottom:10px}
+  .split .no h3{color:var(--terracotta)} .split .yes h3{color:var(--forest)}
+  .split li{font-size:13.5px;color:var(--ink-2);line-height:1.5;margin-bottom:8px;list-style:none;
+            padding-left:16px;position:relative}
+  .split li::before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%}
+  .split .no li::before{background:var(--terracotta)} .split .yes li::before{background:var(--forest)}
+
+  .quote{font-family:var(--serif);font-size:27px;line-height:1.32;letter-spacing:-.02em;max-width:22ch}
+  .mark{background:var(--marigold-2);padding:0 4px;border-radius:2px}
+
+  .prog{position:absolute;top:0;left:0;height:3px;background:var(--forest);transition:width .3s}
+  .hint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);color:#6b665d;font-family:var(--mono);
+        font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+  @media print{
+    body{background:#fff;display:block;overflow:visible}
+    #stage{transform:none!important;width:1280px;height:720px}
+    /* Dropping position:absolute also drops inset:0, so without an explicit size
+       each slide collapses to its content and leaves a white band on the page. */
+    .slide{display:flex!important;position:relative;width:1280px;height:720px;
+           page-break-after:always;break-after:page}
+    .slide:last-child{page-break-after:auto;break-after:auto}
+    .hint{display:none}
+    @page{size:1280px 720px;margin:0}
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- 1 ------------------------------------------------------------------ -->
+  <section class="slide on">
+    <div class="prog" style="width:14%"></div>
+    <div style="margin-top:100px">
+      <div class="eyebrow">BSMS4002 · Design Thinking for Data-Driven App Development · IIT Madras BS Degree</div>
+      <h1 style="margin-top:26px">PaisaPath</h1>
+      <div class="sub" style="font-size:19px;max-width:64ch;margin-top:18px">
+        A beginner-friendly personal finance mentor for young adults entering financial independence.
+        <strong>What nine interviews taught us, and what we built because of it.</strong>
+      </div>
+      <div style="display:flex;gap:26px;margin-top:38px;font-size:14px;color:var(--ink-2)">
+        <span>● Harsh Patel</span><span>● Arvind S</span><span>● Soham Ghosh</span>
+        <span style="color:var(--ink-3)">Team 20</span>
+      </div>
+    </div>
+    <div class="foot"><span>Empathize → Define → Ideate → Build</span><span>01 / 07</span></div>
+  </section>
+
+  <!-- 2 ------------------------------------------------------------------ -->
+  <section class="slide">
+    <div class="prog" style="width:28%"></div>
+    <div class="eyebrow">The customer story · 9 interviews</div>
+    <h2>The first paycheck arrives before the first financial skill</h2>
+    <div class="sub">Three stages of handling money. Experience changed what went wrong. It did not fix it.</div>
+
+    <div class="grid g3" style="margin-top:28px">
+      <div class="person">
+        <div class="lvl">Level 1 · Pre-earner</div>
+        <div class="who">Riya, 19</div>
+        <div class="q">“It is just a small payment… where did all my money go?”</div>
+      </div>
+      <div class="person" style="border-color:var(--marigold)">
+        <div class="lvl">Level 2 · Cautious first earner</div>
+        <div class="who">Samik, 23</div>
+        <div class="q">“I want to manage my money wisely, but I'm still unsure I'm making the right decisions.”</div>
+      </div>
+      <div class="person" style="border-color:var(--terracotta)">
+        <div class="lvl">Level 3 · Early investor</div>
+        <div class="who">Anuj, 23</div>
+        <div class="q">“I have started investing, but I still don't know whether I'm allocating the right way.”</div>
+      </div>
+    </div>
+
+    <div class="grid g4" style="margin-top:30px">
+      <div class="stat"><div class="n">9/9</div><div class="l">had tried to track their spending and given up. Memory, UPI history, abandoned spreadsheets, even a self-built tracker</div></div>
+      <div class="stat"><div class="n">9/9</div><div class="l">brought up trust or privacy on their own, before we asked</div></div>
+      <div class="stat"><div class="n warn">3/9</div><div class="l">had already lost money on F&amp;O, badly timed stocks or an over-invested stipend</div></div>
+      <div class="stat"><div class="n warn">0/9</div><div class="l">could explain how to divide up a salary</div></div>
+    </div>
+    <div class="foot"><span>Canvas 1 · Personas &amp; journey maps</span><span>02 / 07</span></div>
+  </section>
+
+  <!-- 3 ------------------------------------------------------------------ -->
+  <section class="slide">
+    <div class="prog" style="width:42%"></div>
+    <div class="eyebrow">Problems uncovered · where every journey map bends</div>
+    <h2>Confidence collapses between researching and deciding</h2>
+    <div class="sub">All nine journey maps came out the same shape, and they hit bottom in the same place.</div>
+
+    <!-- One SVG, one coordinate system. Splitting the curve across an SVG and
+         flex-positioned dots put them in different spaces and the line escaped. -->
+    <svg class="arc" viewBox="0 0 1000 190" role="img"
+         aria-label="Emotional curve across six journey stages, bottoming out at 'I'll decide later'">
+      <path d="M83 30 L250 44 L417 82 L583 116 L750 138 L917 88"
+            fill="none" stroke="var(--rule)" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M583 116 L750 138" fill="none" stroke="var(--terracotta)" stroke-width="3.5"/>
+      <g font-family="Inter, sans-serif" font-size="15" fill="var(--ink-3)" text-anchor="middle">
+        <circle cx="83"  cy="30"  r="6" fill="var(--forest)"/><text x="83"  y="172">Income arrives</text>
+        <circle cx="250" cy="44"  r="6" fill="var(--forest)"/><text x="250" y="172">Plans to save</text>
+        <circle cx="417" cy="82"  r="6" fill="var(--forest)"/><text x="417" y="172">Researches options</text>
+        <circle cx="583" cy="116" r="6" fill="var(--forest)"/><text x="583" y="172">Evaluates trust</text>
+        <circle cx="750" cy="138" r="9" fill="var(--terracotta)"/>
+        <text x="750" y="172" fill="var(--terracotta)" font-weight="600">“I'll decide later”</text>
+        <circle cx="917" cy="88"  r="6" fill="var(--forest)"/><text x="917" y="172">Plans ahead</text>
+      </g>
+    </svg>
+
+    <div class="grid g3" style="margin-top:12px">
+      <div class="card"><h3>Everyone stalls at the same point</h3><p>They could follow the concepts. Choosing between a PPF, a fixed deposit and a mutual fund is where they stopped.</p></div>
+      <div class="card"><h3>Uncertainty peaks when sources disagree</h3><p>Parents, YouTube, ChatGPT, Gemini. “Different people give different advice. What do I do first?”</p></div>
+      <div class="card" style="border-color:var(--terracotta)"><h3>The lowest point is doing nothing</h3><p>The money sits in the account and the confidence never builds. More experience does not flatten the curve.</p></div>
+    </div>
+    <div class="foot"><span>Canvas 1 · 9 customer journey maps</span><span>03 / 07</span></div>
+  </section>
+
+  <!-- 4 ------------------------------------------------------------------ -->
+  <section class="slide">
+    <div class="prog" style="width:57%"></div>
+    <div class="eyebrow">Problems uncovered · multi-why → root causes</div>
+    <h2>Four gaps generate every symptom we observed</h2>
+
+    <div class="grid g2" style="margin-top:24px">
+      <div class="card"><div class="rc"><span class="tag">RC·1</span><div>
+        <h3>Guidance gap</h3>
+        <p>No beginner-friendly, contextual help at the transition to independence. Education is generic and jargon-first; professional advice is expensive.</p></div></div></div>
+      <div class="card"><div class="rc t2"><span class="tag">RC·2</span><div>
+        <h3>Structure gap</h3>
+        <p>No planning tuned to income, goals and life stage. Our nine users needed four different budgeting approaches between them.</p></div></div></div>
+      <div class="card"><div class="rc t3"><span class="tag">RC·3</span><div>
+        <h3>Confidence gap</h3>
+        <p>No way to see the reasoning behind a suggestion, and no safe way to build judgement before real money is at stake. So the decision gets put off.</p></div></div></div>
+      <div class="card"><div class="rc t4"><span class="tag">RC·4</span><div>
+        <h3>Trust gap</h3>
+        <p>Data practices and commercial incentives are unclear. People cannot check whether the guidance is impartial, so they fall back on family advice.</p></div></div></div>
+    </div>
+
+    <div style="margin-top:22px;border-left:2px solid var(--marigold);padding-left:16px;font-size:14.5px;color:var(--ink-2);line-height:1.55">
+      What we kept coming back to: <strong>these users already have plenty of information. What they are short of is confidence.</strong> And trust decides whether they open the app at all.
+    </div>
+    <div class="foot"><span>Canvas 2 · Multi-why analysis</span><span>04 / 07</span></div>
+  </section>
+
+  <!-- 5 ------------------------------------------------------------------ -->
+  <section class="slide">
+    <div class="prog" style="width:71%"></div>
+    <div class="eyebrow">Solutions generated · every feature closes a named gap</div>
+    <h2>Five ideas, four root causes</h2>
+
+    <div style="margin-top:20px">
+      <div class="feat">
+        <div class="cause"><strong>RC·2</strong> · Structure gap<br><span style="color:var(--ink-3)">generic rules fit no one</span></div>
+        <div class="arrow">→</div>
+        <div class="what">Personalised budgeting &amp; first-salary onboarding
+          <span>A questionnaire works out your profile, then splits your salary across essentials, an emergency fund, investments and spending. You drag it until it fits your life.</span></div>
+      </div>
+      <div class="feat">
+        <div class="cause"><strong>RC·2</strong> · Structure gap<br><span style="color:var(--ink-3)">tracking dies on effort</span></div>
+        <div class="arrow">→</div>
+        <div class="what">Unified dashboard &amp; automatic expense tracking
+          <span>Every account on one page. Expenses sort themselves, hidden charges get flagged, and you never type one in.</span></div>
+      </div>
+      <div class="feat">
+        <div class="cause"><strong>RC·3</strong> · Confidence gap<br><span style="color:var(--ink-3)">“I'll decide later”</span></div>
+        <div class="arrow">→</div>
+        <div class="what">“What if” decision simulator
+          <span>Type the question the way you would say it. “What if I invest ₹5,000 instead of spending it?” You see both futures side by side before you commit.</span></div>
+      </div>
+      <div class="feat">
+        <div class="cause"><strong>RC·1</strong> · Guidance gap<br><span style="color:var(--ink-3)">help never arrives in time</span></div>
+        <div class="arrow">→</div>
+        <div class="what">Context-aware smart nudges
+          <span>They turn up when they are useful. Move money on the day your salary lands. Check a subscription that has crept up.</span></div>
+      </div>
+      <div class="feat">
+        <div class="cause"><strong>RC·1</strong> · Guidance gap<br><span style="color:var(--ink-3)">learning never becomes action</span></div>
+        <div class="arrow">→</div>
+        <div class="what">Financial education, in context
+          <span>Every term gets explained inside the app, right where you are making the decision. A moderated peer community comes next.</span></div>
+      </div>
+    </div>
+    <div class="foot"><span>Root causes → features · Canvas 2</span><span>05 / 07</span></div>
+  </section>
+
+  <!-- 6 ------------------------------------------------------------------ -->
+  <section class="slide">
+    <div class="prog" style="width:85%"></div>
+    <div class="eyebrow">RC·4 · Trust gap · the sharpest thing RD1 asked us</div>
+    <h2>“Won't AI become one more conflicting advisor?”</h2>
+    <div class="sub">It cannot, because it never gets an opinion. That is built into the architecture.</div>
+
+    <div class="split">
+      <div class="col no">
+        <h3>What we did not build</h3>
+        <ul>
+          <li>Another voice competing with parents, YouTube and ChatGPT</li>
+          <li>Product picks out of a black box the user cannot check</li>
+          <li>Anything tuned for engagement or commission</li>
+        </ul>
+      </div>
+      <div class="col yes">
+        <h3>What we built instead</h3>
+        <ul>
+          <li>Deterministic rules produce every rupee on screen</li>
+          <li>The model gets the finished figures and puts them into plain English. It is never asked to work one out</li>
+          <li>Every recommendation shows its reasoning, its risk and two alternatives</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="margin-top:22px;background:var(--card);border:1px solid var(--rule);border-left:2px solid var(--forest);border-radius:4px;padding:16px 20px">
+      <div class="eyebrow" style="margin-bottom:6px">Why it holds</div>
+      <div style="font-size:14.5px;color:var(--ink-2);line-height:1.55">
+        The maths lives in one file that contains no AI at all, so you can check any figure yourself. When the AI is unreachable every screen still works. A <span class="mark">Trust Centre</span> logs each AI call and what got sent. It weighs up the conflicting advice for the user, and has none of its own to add.
+      </div>
+    </div>
+    <div class="foot"><span>Design principle · answers RD1 + RD2 dissent</span><span>06 / 07</span></div>
+  </section>
+
+  <!-- 7 ------------------------------------------------------------------ -->
+  <section class="slide">
+    <div class="prog" style="width:100%"></div>
+    <div class="eyebrow">Where we are</div>
+    <div style="display:grid;grid-template-columns:1.05fr 1fr;gap:44px;align-items:center;flex:1">
+      <div>
+        <div class="quote" style="margin-top:0">
+          From “I'll decide later”<br>to <span class="mark">one clear step</span>,<br>with the reason shown.
+        </div>
+        <div class="sub" style="margin-top:22px;max-width:44ch">
+          Ten screens are built and running, including the questionnaire, the mentor, and the simulator you can ask in plain English.
+        </div>
+      </div>
+      <div class="grid g2" style="margin-top:0;gap:14px">
+        <div class="card"><div class="stat"><div class="n" style="font-size:38px">10</div><div class="l">screens, built and running</div></div></div>
+        <div class="card"><div class="stat"><div class="n" style="font-size:38px">6</div><div class="l">financial profiles, from 22 questions</div></div></div>
+        <div class="card"><div class="stat"><div class="n" style="font-size:38px">9</div><div class="l">nudge triggers, each carrying its evidence</div></div></div>
+        <div class="card"><div class="stat"><div class="n" style="font-size:38px">0</div><div class="l">numbers written by an AI</div></div></div>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--rule);padding-top:14px;font-family:var(--mono);font-size:11px;
+                letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)">
+      Feedback over applause. Push hardest on whether the explanations actually earn trust
+    </div>
+    <div class="foot"><span>PaisaPath · Team 20</span><span>07 / 07</span></div>
+  </section>
+
+</div>
+<div class="hint">← → or space to move · F for fullscreen · P to print</div>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  let i = 0;
+  const show = n => {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('on', k === i));
+    location.hash = i + 1;
+  };
+  addEventListener('keydown', e => {
+    if (['ArrowRight', ' ', 'PageDown', 'Enter'].includes(e.key)) { e.preventDefault(); show(i + 1); }
+    if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End') show(slides.length - 1);
+    if (e.key.toLowerCase() === 'f') document.documentElement.requestFullscreen?.();
+    if (e.key.toLowerCase() === 'p') print();
+  });
+  addEventListener('click', e => show(i + (e.clientX < innerWidth / 3 ? -1 : 1)));
+
+  // Scale the fixed stage to whatever it is projected on.
+  const stage = document.getElementById('stage');
+  const fit = () => {
+    stage.style.transform = `scale(${Math.min(innerWidth / 1280, innerHeight / 720)})`;
+  };
+  addEventListener('resize', fit); fit();
+
+  if (location.hash) show(+location.hash.slice(1) - 1);
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+node_modules
+dist
+data/*.db
+.env
+.env.local
+.git
+.github
+screenshots
+screenshots-onboarding
+*.log

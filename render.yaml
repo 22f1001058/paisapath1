@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: paisapath
+    runtime: docker
+    plan: starter # Change to 'free' if using free tier without persistent disk
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      # AI Provider configuration (optional)
+      - key: AI_PROVIDER
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+    disk:
+      name: paisapath-db-data
+      mountPath: /app/data
+      sizeGB: 1

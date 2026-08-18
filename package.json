@@ -1,0 +1,37 @@
+{
+  "name": "paisapath",
+  "version": "1.0.0",
+  "description": "An AI financial mentor for first-time earners in India.",
+  "scripts": {
+    "dev": "concurrently -n api,web -c green,yellow \"PORT=8787 node --watch server/index.js\" \"vite --port 5173 --strictPort\"",
+    "api": "PORT=8787 node server/index.js",
+    "web": "vite",
+    "build": "vite build",
+    "start": "vite build && node server/index.js",
+    "shots": "node tools/capture.mjs",
+    "pdf": "node tools/sheet-pdf.mjs",
+    "test": "node server/finance.test.js && node server/profile.test.js && node server/providers.test.js",
+    "deck": "node tools/deck-pdf.mjs",
+    "shots:onboarding": "node tools/capture.mjs --set=onboarding",
+    "pptx": "node tools/deck-pptx.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "express": "^5.2.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@rolldown/binding-win32-x64-msvc": "^1.1.5",
+    "@vitejs/plugin-react": "^6.0.4",
+    "concurrently": "^10.0.4",
+    "vite": "^8.1.5"
+  },
+  "private": true,
+  "optionalDependencies": {
+    "@rolldown/binding-win32-x64-msvc": "^1.1.5"
+  }
+}

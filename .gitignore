@@ -1,0 +1,27 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# Personal financial data. The SQLite file holds transactions, balances, goals
+# and the full chat history — it never belongs in a repository.
+data/
+
+# Secrets. .env is the only place an API key lives; .env.example is the dummy
+# copy that is safe to commit.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+credentials.json
+service-account*.json
+.netrc
+
+# Local editor / agent state that can carry tokens or machine-specific paths.
+.claude/settings.local.json
+.vscode/settings.json
+.idea/
