@@ -297,3 +297,5 @@ Dependencies: `express` at runtime; `react`, `vite`, `concurrently` to build. No
   in the sense that no code path can initiate a payment.
 - Not monetised. No affiliate links, no sponsored placement, no referral fees — stated in the
   Trust Centre because an app that says nothing about this is saying something.
+#   p a i s a p a t h 1  
+ 
