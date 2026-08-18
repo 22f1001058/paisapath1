@@ -6,8 +6,8 @@ WORKDIR /app
 # Copy package configuration
 COPY package.json package-lock.json ./
 
-# Install dependencies including devDependencies for Vite build
-RUN npm ci
+# Install dependencies for building (supports cross-platform optional bindings)
+RUN npm install
 
 # Copy full source code
 COPY . .
@@ -27,7 +27,7 @@ ENV PORT=8787
 COPY package.json package-lock.json ./
 
 # Install production dependencies only
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Copy compiled frontend build and backend source code
 COPY --from=builder /app/dist ./dist
