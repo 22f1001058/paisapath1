@@ -1,13 +1,13 @@
 # Stage 1: Build frontend and dependencies
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
 # Copy package configuration
 COPY package.json package-lock.json ./
 
-# Install dependencies for building (supports cross-platform optional bindings)
-RUN npm install
+# Install dependencies including optional platform bindings
+RUN npm install --include=optional
 
 # Copy full source code
 COPY . .
@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Production Runner
-FROM node:22-alpine AS runner
+FROM node:22-slim AS runner
 
 WORKDIR /app
 
