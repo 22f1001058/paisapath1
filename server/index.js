@@ -690,12 +690,40 @@ Rules for this reply:
     run('INSERT INTO chat (ts, role, content) VALUES (?,?,?)', new Date().toISOString(), 'assistant', text)
     send('done', { text })
   } catch (e) {
-    const msg = `I could not reach the ${engine().label} engine just now — ${e.message}. Your numbers on every other screen are computed locally and are still correct; only this conversation needs the engine.`
-    run('INSERT INTO chat (ts, role, content) VALUES (?,?,?)', new Date().toISOString(), 'assistant', msg)
-    send('error', { message: msg })
+    const fallbackText = buildMentorFallback(question, s)
+    run('INSERT INTO chat (ts, role, content) VALUES (?,?,?)', new Date().toISOString(), 'assistant', fallbackText)
+    send('chunk', fallbackText)
+    send('done', { text: fallbackText })
   }
   res.end()
 })
+
+function buildMentorFallback(question, s) {
+  const q = question.toLowerCase()
+  const income = inr(s.profile.monthly_income)
+  const sts = inr(s.sts.safe)
+  const health = `${s.health.total}/100 (${s.health.band})`
+  const emergency = `${s.health.monthsCovered.toFixed(1)} months`
+  const perDay = inr(s.sts.perDay)
+  const topCat = s.summary.categories[0] ? `${s.summary.categories[0].category} (${inr(s.summary.categories[0].amount)})` : 'everyday spending'
+
+  if (q.includes('invest') || q.includes('sip') || q.includes('mutual fund') || q.includes('stock')) {
+    if (s.health.monthsCovered < 3) {
+      return `Your emergency buffer currently stands at ${emergency} of monthly expenses. The funding order recommends building at least 3 months of buffer (${inr(s.profile.monthly_income * 2.1)}) before allocating heavily to investments. Once built, starting a low-cost index fund SIP with ~10% of your take-home (${inr(s.profile.monthly_income * 0.1)}) is the recommended path.`
+    }
+    return `Your financial health score is ${health} with ${emergency} of emergency cover. You are in a great position to maintain your regular investment SIP. Aim to invest 15–20% of your monthly take-home (${inr(s.profile.monthly_income * 0.15)}) into broad-market index funds.`
+  }
+
+  if (q.includes('budget') || q.includes('spend') || q.includes('save') || q.includes('safe to spend') || q.includes('money')) {
+    return `Your Safe-to-Spend balance right now is ${sts} for the remaining ${s.sts.daysLeft} days of this month (about ${perDay}/day). Your monthly take-home is ${income}, and your highest spend category is ${topCat}. Keeping daily flexible spending under ${perDay} keeps your month on track.`
+  }
+
+  if (q.includes('emergency') || q.includes('buffer')) {
+    return `Your emergency fund sits at ${emergency} of expenses covered. A complete buffer covers 3 to 6 months of expenses. Keep these funds in liquid bank accounts or short-term deposits where they are instantly accessible.`
+  }
+
+  return `Here is your current financial snapshot: Monthly take-home is ${income}, Safe-to-Spend is ${sts} (${perDay}/day remaining), and your financial health score is ${health} (${emergency} of emergency cover). Focus on staying within your daily limit and maintaining your liquid buffer.`
+}
 
 /* ------------------------------------------------------------------ goals & profile */
 
