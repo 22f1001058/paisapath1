@@ -1,5 +1,5 @@
-// Export the slide deck to a 16:9 PDF, one slide per page.
-//   node tools/deck-pdf.mjs
+// Export a slide deck to a 16:9 PDF, one slide per page.
+//   node tools/deck-pdf.mjs [src.html] [out.pdf]
 //
 // Chrome's `--print-to-pdf` CLI flag ignores the stylesheet's @page size and
 // falls back to Letter, which leaves a white band under every slide. The
@@ -8,13 +8,13 @@
 
 import { spawn } from 'node:child_process'
 import { existsSync, writeFileSync, rmSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { tmpdir } from 'node:os'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const src = join(root, 'presentation', 'paisapath-progress.html')
-const out = join(root, 'presentation', 'PaisaPath-progress.pdf')
+const src = process.argv[2] ? resolve(process.argv[2]) : join(root, 'presentation', 'paisapath-progress.html')
+const out = process.argv[3] ? resolve(process.argv[3]) : join(root, 'presentation', 'PaisaPath-progress.pdf')
 const profile = join(tmpdir(), `pp-deck-${process.pid}`)
 
 const CHROME = [
@@ -32,7 +32,8 @@ const chrome = spawn(CHROME, [
   '--no-first-run', '--no-default-browser-check', '--force-color-profile=srgb',
   `--user-data-dir=${profile}`, 'about:blank',
 ], { stdio: 'ignore' })
-const cleanup = () => { chrome.kill('SIGKILL'); rmSync(profile, { recursive: true, force: true }) }
+// Chrome may still be flushing the profile when SIGKILL lands; a leftover tmp dir is harmless.
+const cleanup = () => { chrome.kill('SIGKILL'); try { rmSync(profile, { recursive: true, force: true }) } catch { /* leave it */ } }
 process.on('exit', cleanup)
 
 let wsUrl

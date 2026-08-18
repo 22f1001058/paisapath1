@@ -109,13 +109,21 @@ function seedTxns() {
 }
 
 export function seedIfEmpty({ force = false } = {}) {
-  if (!force && one('SELECT COUNT(*) AS n FROM txns').n > 0) return false
+  if (!force && one('SELECT COUNT(*) AS n FROM profile').n > 0) return false
 
   db.exec('DELETE FROM txns; DELETE FROM accounts; DELETE FROM bills; DELETE FROM goals; DELETE FROM budget; DELETE FROM profile; DELETE FROM events;')
 
-  // onboarded=1: this demo profile has four months of history, so putting it
-  // through the first-salary journey would be nonsense. Reach it at #/start.
-  //
+  // First run: a blank, not-yet-onboarded profile. The questionnaire at #/start
+  // fills in the name, salary and everything else; until then the app shows
+  // nothing but the questionnaire. The Ananya demo below (four months of
+  // history, onboarded=1 because replaying the first-salary journey over real
+  // history would be nonsense) is only reachable from the Trust Centre's
+  // reset button, which calls this with force=true.
+  if (!force) {
+    run("INSERT INTO profile (id, name, monthly_income, pay_day, onboarded) VALUES (1, '', 0, 1, 0)")
+    return true
+  }
+
   // The answers are what Ananya would have given in April, and are deliberately
   // consistent with the transactions below — so the dashboard shows her
   // questionnaire profile next to a *measured* health score rather than a

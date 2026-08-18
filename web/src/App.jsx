@@ -36,7 +36,9 @@ export default function App() {
   const state = useFetch('/api/state')
 
   const entry = NAV.find((n) => n.id === route) || NAV[1]
-  const Page = entry.el
+  // No profile yet? The questionnaire comes before everything else — every
+  // screen is computed from what it collects.
+  const Page = state.data && !state.data.profile.onboarded ? Onboard : entry.el
   const s = state.data
 
   return (
@@ -91,22 +93,6 @@ export default function App() {
               <h1 className="page-title">The API is not answering</h1>
               <p className="lede" style={{ marginTop: 8 }}>{state.error}</p>
               <p className="small" style={{ marginTop: 12 }}>Start it with <code className="kbd">npm run dev</code> — that runs the API on :8787 and this UI on :5173.</p>
-            </div>
-          )}
-          {s && !s.profile.onboarded && route !== 'start' && (
-            <div className="page" style={{ paddingBottom: 0 }}>
-              <div className="card rise" style={{ borderLeft: '2px solid var(--marigold)', padding: '14px 18px' }}>
-                <div className="row-between wrap" style={{ gap: 14 }}>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>You haven’t set up your salary yet</div>
-                    <p className="small" style={{ marginTop: 3, maxWidth: '68ch' }}>
-                      Four questions and a split you drag until it looks like your life. Everything else on these
-                      screens gets sharper once the app knows what actually lands each month.
-                    </p>
-                  </div>
-                  <button className="btn" onClick={() => go('start')}>Set it up</button>
-                </div>
-              </div>
             </div>
           )}
           {s && <Page state={s} reload={state.reload} go={go} />}

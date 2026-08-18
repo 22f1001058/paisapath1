@@ -675,6 +675,7 @@ Rules for this reply:
         question,
         their_numbers: {
           name: s.profile.name, city: s.profile.city, stage: s.profile.stage,
+          money_profile: s.assessment ? `${s.assessment.profile.name} — ${s.assessment.profile.meaning}` : 'not assessed yet',
           monthly_take_home: inr(s.profile.monthly_income),
           safe_to_spend_now: inr(s.sts.safe), days_left_in_month: s.sts.daysLeft,
           health: `${s.health.total}/100 (${s.health.band})`,
