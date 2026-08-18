@@ -1,18 +1,16 @@
-# Stage 1: Build frontend and dependencies
+# Stage 1: Build frontend bundle on Linux
 FROM node:22-slim AS builder
 
 WORKDIR /app
 
-# Copy package configuration
-COPY package.json package-lock.json ./
+# Copy ONLY package.json so npm installs Linux-native build tool binaries (Vite, Rolldown, LightningCSS)
+COPY package.json ./
 
-# Install dependencies including optional platform bindings
-RUN npm install --include=optional
+# Install dev dependencies dynamically for Linux
+RUN npm install
 
-# Copy full source code
+# Copy source code and build Vite frontend into dist/
 COPY . .
-
-# Build the frontend production bundle (outputs to dist/)
 RUN npm run build
 
 # Stage 2: Production Runner
@@ -23,13 +21,13 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8787
 
-# Copy production package manifests
+# Copy package manifests for production install
 COPY package.json package-lock.json ./
 
-# Install production dependencies only
-RUN npm install --omit=dev
+# Install production runtime dependencies (Express, React)
+RUN npm ci --omit=dev
 
-# Copy compiled frontend build and backend source code
+# Copy compiled dist folder and backend server code
 COPY --from=builder /app/dist ./dist
 COPY server ./server
 COPY presentation ./presentation
